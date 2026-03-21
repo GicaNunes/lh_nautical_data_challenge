@@ -1,11 +1,16 @@
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
-# Carregar dados tratados
-df = pd.read_csv("data/df_tratado.csv")
-df['sale_date'] = pd.to_datetime(df['sale_date'], errors='coerce')
+# lê o arquivo bruto
+df_raw = pd.read_csv("data/vendas_2023_2024.csv")
 
-st.title("📊 Dashboard LH Nauticals")
+# aplica tratamento (exemplo simples)
+df_raw['sale_date'] = pd.to_datetime(df_raw['sale_date'], errors='coerce')
+df_raw = df_raw.dropna(subset=['sale_date'])
+
+# usa o df tratado direto
+df = df_raw
+
 
 # Questão 4 – Prejuízos por Produto
 st.header("Questão 4 – Prejuízos por Produto")
