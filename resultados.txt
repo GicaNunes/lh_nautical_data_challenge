@@ -1,0 +1,250 @@
+
+=== Nome do Módulo ===
+
+=== EDA ===
+
+=== EDA ===
+             code
+count  157.000000
+mean    76.210191
+std     43.522766
+min      1.000000
+25%     39.000000
+50%     75.000000
+75%    114.000000
+max    150.000000
+
+=== Clientes ===
+id_client
+4     R$ 88854.1R$ 88854.1R$ 88854.1R$ 88854.1R$ 888...
+14    R$ 86558.56R$ 86558.56R$ 86558.56R$ 86558.56R$...
+9     R$ 85789.05R$ 85789.05R$ 85789.05R$ 85789.05R$...
+5     R$ 799.29R$ 799.29R$ 799.29R$ 799.29R$ 799.29R...
+26    R$ 622.7R$ 622.7R$ 622.7R$ 622.7R$ 622.7R$ 622...
+46    R$ 4917.53R$ 4917.53R$ 4917.53R$ 9903.71R$ 990...
+39    R$ 4650.72R$ 4650.72R$ 4650.72R$ 4650.72R$ 465...
+45    R$ 4650.72R$ 4650.72R$ 4650.72R$ 4650.72R$ 465...
+48    R$ 4436.43R$ 4436.43R$ 4436.43R$ 4436.43R$ 443...
+31    R$ 4436.43R$ 4436.43R$ 4436.43R$ 109987.2R$ 10...
+Name: lucro, dtype: object
+
+=== Previsão ===
+Previsão de vendas gerada com média móvel.
+
+=== Exploração Extra ===
+Top 5 clientes VIP:
+full_name
+Lucas Guedes Cunha Lopes                 40266.120009
+Ana Silva Costa Farias Coelho            39274.053590
+Daniela Borges Vieira Farias Mendonça    38703.178678
+Márcia Figueiredo                        37747.069481
+Gabriela Barros Lacerda                  37704.457696
+Name: ticket_medio, dtype: float64
+Top pares de produtos comprados juntos:
+[(('Motor Diesel Yanmar Velocity 37HP', 'Motor Diesel Yanmar Velocity 37HP'), 192), (('Boia de Arqueamento Delta Nexus', 'Boia de Arqueamento Delta Nexus'), 102), (('Cabo de Nylon Delta Velocity Core Mako', 'Cabo de Nylon Delta Velocity Core Mako'), 45), (('GPS Lowrance Evo Storm Drift', 'GPS Lowrance Evo Storm Drift'), 29), (('Motor de Popa Tohatsu Ion Core Nautic 53HP', 'Motor Diesel Yanmar Velocity 37HP'), 4)]
+
+=== EDA ===
+             code
+count  157.000000
+mean    76.210191
+std     43.522766
+min      1.000000
+25%     39.000000
+50%     75.000000
+75%    114.000000
+max    150.000000
+
+=== Tratamento ===
+Dataframe tratado salvo em data/df_tratado.csv
+Colunas finais: ['id', 'id_client', 'id_product', 'qtd', 'total', 'sale_date', 'name', 'price', 'code_x', 'actual_category', 'full_name', 'location', 'code_y', 'email']
+Total de registers: 10364
+
+=== Vendas ===
+Gráficos salvos em visuals/vendas_por_dia.png e visuals/vendas_mensais.png
+Resumo: Vendas totais = 79311
+Média por mês = 8.080940721117395
+
+=== Clientes ===
+id_client
+4     R$ 88854.1R$ 88854.1R$ 88854.1R$ 88854.1R$ 888...
+14    R$ 86558.56R$ 86558.56R$ 86558.56R$ 86558.56R$...
+9     R$ 85789.05R$ 85789.05R$ 85789.05R$ 85789.05R$...
+5     R$ 799.29R$ 799.29R$ 799.29R$ 799.29R$ 799.29R...
+26    R$ 622.7R$ 622.7R$ 622.7R$ 622.7R$ 622.7R$ 622...
+46    R$ 4917.53R$ 4917.53R$ 4917.53R$ 9903.71R$ 990...
+39    R$ 4650.72R$ 4650.72R$ 4650.72R$ 4650.72R$ 465...
+45    R$ 4650.72R$ 4650.72R$ 4650.72R$ 4650.72R$ 465...
+48    R$ 4436.43R$ 4436.43R$ 4436.43R$ 4436.43R$ 443...
+31    R$ 4436.43R$ 4436.43R$ 4436.43R$ 109987.2R$ 10...
+Name: lucro, dtype: object
+
+=== Previsão ===
+Previsão de vendas gerada com média móvel.
+
+=== Exploração Extra ===
+Top 5 clientes VIP:
+full_name
+Lucas Guedes Cunha Lopes                 40266.120009
+Ana Silva Costa Farias Coelho            39274.053590
+Daniela Borges Vieira Farias Mendonça    38703.178678
+Márcia Figueiredo                        37747.069481
+Gabriela Barros Lacerda                  37704.457696
+Name: ticket_medio, dtype: float64
+Top pares de produtos comprados juntos:
+[(('Motor Diesel Yanmar Velocity 37HP', 'Motor Diesel Yanmar Velocity 37HP'), 192), (('Boia de Arqueamento Delta Nexus', 'Boia de Arqueamento Delta Nexus'), 102), (('Cabo de Nylon Delta Velocity Core Mako', 'Cabo de Nylon Delta Velocity Core Mako'), 45), (('GPS Lowrance Evo Storm Drift', 'GPS Lowrance Evo Storm Drift'), 29), (('Motor de Popa Tohatsu Ion Core Nautic 53HP', 'Motor Diesel Yanmar Velocity 37HP'), 4)]
+
+=== EDA ===
+             code
+count  157.000000
+mean    76.210191
+std     43.522766
+min      1.000000
+25%     39.000000
+50%     75.000000
+75%    114.000000
+max    150.000000
+
+=== Tratamento ===
+Dataframe tratado salvo em data/df_tratado.csv
+Colunas finais: ['id', 'id_client', 'id_product', 'qtd', 'total', 'sale_date', 'name', 'price', 'code_x', 'actual_category', 'full_name', 'location', 'code_y', 'email']
+Total de registers: 10364
+
+=== Vendas ===
+Gráficos salvos em visuals/vendas_por_dia.png e visuals/vendas_mensais.png
+Resumo: Vendas totais = 79311
+Média por mês = 8.080940721117395
+
+=== Clientes ===
+id_client
+4     R$ 88854.1R$ 88854.1R$ 88854.1R$ 88854.1R$ 888...
+14    R$ 86558.56R$ 86558.56R$ 86558.56R$ 86558.56R$...
+9     R$ 85789.05R$ 85789.05R$ 85789.05R$ 85789.05R$...
+5     R$ 799.29R$ 799.29R$ 799.29R$ 799.29R$ 799.29R...
+26    R$ 622.7R$ 622.7R$ 622.7R$ 622.7R$ 622.7R$ 622...
+46    R$ 4917.53R$ 4917.53R$ 4917.53R$ 9903.71R$ 990...
+39    R$ 4650.72R$ 4650.72R$ 4650.72R$ 4650.72R$ 465...
+45    R$ 4650.72R$ 4650.72R$ 4650.72R$ 4650.72R$ 465...
+48    R$ 4436.43R$ 4436.43R$ 4436.43R$ 4436.43R$ 443...
+31    R$ 4436.43R$ 4436.43R$ 4436.43R$ 109987.2R$ 10...
+Name: lucro, dtype: object
+
+=== Previsão ===
+Previsão de vendas gerada com média móvel.
+
+=== Exploração Extra ===
+Top 5 clientes VIP:
+full_name
+Lucas Guedes Cunha Lopes                 40266.120009
+Ana Silva Costa Farias Coelho            39274.053590
+Daniela Borges Vieira Farias Mendonça    38703.178678
+Márcia Figueiredo                        37747.069481
+Gabriela Barros Lacerda                  37704.457696
+Name: ticket_medio, dtype: float64
+Top pares de produtos comprados juntos:
+[(('Motor Diesel Yanmar Velocity 37HP', 'Motor Diesel Yanmar Velocity 37HP'), 192), (('Boia de Arqueamento Delta Nexus', 'Boia de Arqueamento Delta Nexus'), 102), (('Cabo de Nylon Delta Velocity Core Mako', 'Cabo de Nylon Delta Velocity Core Mako'), 45), (('GPS Lowrance Evo Storm Drift', 'GPS Lowrance Evo Storm Drift'), 29), (('Motor de Popa Tohatsu Ion Core Nautic 53HP', 'Motor Diesel Yanmar Velocity 37HP'), 4)]
+
+=== Questão 5 – Clientes com maior lucro acumulado ===
+Gráfico salvo em visuals/top_clientes_lucro.png
+Top clientes:
+id_client
+42    72187369.50
+9     66788855.35
+2     65652931.35
+15    64171776.55
+47    64003343.75
+36    62791038.15
+25    62028628.95
+28    60826837.25
+22    59581398.75
+3     59575349.10
+Name: total, dtype: float64
+
+=== Questão 6 – Vendas médias por dia da semana ===
+Gráfico salvo em visuals/vendas_media_semana.png
+sale_date
+Monday       7.960894
+Tuesday      8.054622
+Wednesday    8.122449
+Thursday     8.192647
+Friday       8.143646
+Saturday     8.082079
+Sunday       7.947130
+Name: qtd, dtype: float64
+
+=== EDA ===
+             code
+count  157.000000
+mean    76.210191
+std     43.522766
+min      1.000000
+25%     39.000000
+50%     75.000000
+75%    114.000000
+max    150.000000
+
+=== Tratamento ===
+Dataframe tratado salvo em data/df_tratado.csv
+Colunas finais: ['id', 'id_client', 'id_product', 'qtd', 'total', 'sale_date', 'name', 'price', 'code_x', 'actual_category', 'full_name', 'location', 'code_y', 'email']
+Total de registers: 10364
+
+=== Vendas ===
+Gráficos salvos em visuals/vendas_por_dia.png e visuals/vendas_mensais.png
+Resumo: Vendas totais = 79311
+Média por mês = 8.080940721117395
+
+=== Clientes ===
+id_client
+4     R$ 88854.1R$ 88854.1R$ 88854.1R$ 88854.1R$ 888...
+14    R$ 86558.56R$ 86558.56R$ 86558.56R$ 86558.56R$...
+9     R$ 85789.05R$ 85789.05R$ 85789.05R$ 85789.05R$...
+5     R$ 799.29R$ 799.29R$ 799.29R$ 799.29R$ 799.29R...
+26    R$ 622.7R$ 622.7R$ 622.7R$ 622.7R$ 622.7R$ 622...
+46    R$ 4917.53R$ 4917.53R$ 4917.53R$ 9903.71R$ 990...
+39    R$ 4650.72R$ 4650.72R$ 4650.72R$ 4650.72R$ 465...
+45    R$ 4650.72R$ 4650.72R$ 4650.72R$ 4650.72R$ 465...
+48    R$ 4436.43R$ 4436.43R$ 4436.43R$ 4436.43R$ 443...
+31    R$ 4436.43R$ 4436.43R$ 4436.43R$ 109987.2R$ 10...
+Name: lucro, dtype: object
+
+=== Previsão ===
+Previsão de vendas gerada com média móvel.
+
+=== Exploração Extra ===
+Top 5 clientes VIP:
+full_name
+Lucas Guedes Cunha Lopes                 40266.120009
+Ana Silva Costa Farias Coelho            39274.053590
+Daniela Borges Vieira Farias Mendonça    38703.178678
+Márcia Figueiredo                        37747.069481
+Gabriela Barros Lacerda                  37704.457696
+Name: ticket_medio, dtype: float64
+Top pares de produtos comprados juntos:
+[(('Motor Diesel Yanmar Velocity 37HP', 'Motor Diesel Yanmar Velocity 37HP'), 192), (('Boia de Arqueamento Delta Nexus', 'Boia de Arqueamento Delta Nexus'), 102), (('Cabo de Nylon Delta Velocity Core Mako', 'Cabo de Nylon Delta Velocity Core Mako'), 45), (('GPS Lowrance Evo Storm Drift', 'GPS Lowrance Evo Storm Drift'), 29), (('Motor de Popa Tohatsu Ion Core Nautic 53HP', 'Motor Diesel Yanmar Velocity 37HP'), 4)]
+
+=== Questão 5 – Clientes com maior lucro acumulado ===
+Gráfico salvo em visuals/top_clientes_lucro.png
+Top clientes:
+id_client
+42    72187369.50
+9     66788855.35
+2     65652931.35
+15    64171776.55
+47    64003343.75
+36    62791038.15
+25    62028628.95
+28    60826837.25
+22    59581398.75
+3     59575349.10
+Name: total, dtype: float64
+
+=== Questão 6 – Vendas médias por dia da semana ===
+Gráfico salvo em visuals/vendas_media_semana.png
+sale_date
+Monday       7.960894
+Tuesday      8.054622
+Wednesday    8.122449
+Thursday     8.192647
+Friday       8.143646
+Saturday     8.082079
+Sunday       7.947130
+Name: qtd, dtype: float64
