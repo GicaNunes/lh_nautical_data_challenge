@@ -5,6 +5,8 @@ scikit-learn
 prophet
 fpdf2
 streamlit
+plotly
+
 
 
 
