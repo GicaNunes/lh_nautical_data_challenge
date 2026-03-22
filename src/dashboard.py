@@ -2,6 +2,8 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 from collections import Counter
+import networkx as nx
+import plotly.graph_objects as go
 
 # --- Dados principais ---
 df_raw = pd.read_csv("data/csv/vendas_2023_2024.csv")
@@ -108,5 +110,58 @@ else:
         for i in range(len(lista)):
             for j in range(i+1, len(lista)):
                 pares[(lista[i], lista[j])] += 1
-    st.subheader("Top pares de produtos comprados juntos")
-    st.write(pares.most_common(5))
+    
+    # Selecionar os 10 pares mais comuns
+    pares_top = pares.most_common(10)
+    
+    # Criar grafo
+    G = nx.Graph()
+    for (p1, p2), count in pares_top:
+        G.add_edge(p1, p2, weight=count)
+    
+    pos = nx.spring_layout(G, seed=42)
+    
+    # Arestas
+    edge_x, edge_y = [], []
+    for edge in G.edges():
+        x0, y0 = pos[edge[0]]
+        x1, y1 = pos[edge[1]]
+        edge_x += [x0, x1, None]
+        edge_y += [y0, y1, None]
+    
+    edge_trace = go.Scatter(
+        x=edge_x, y=edge_y,
+        line=dict(width=2, color='lightblue'),
+        hoverinfo='none',
+        mode='lines'
+    )
+    
+    # Nós
+    node_x, node_y, node_text = [], [], []
+    for node in G.nodes():
+        x, y = pos[node]
+        node_x.append(x)
+        node_y.append(y)
+        node_text.append(node)
+    
+    node_trace = go.Scatter(
+        x=node_x, y=node_y,
+        mode='markers+text',
+        text=node_text,
+        textposition="top center",
+        marker=dict(size=20, color='orange')
+    )
+    
+    fig_network = go.Figure(
+        data=[edge_trace, node_trace],
+        layout=go.Layout(
+            title="Produtos comprados em conjunto",
+            showlegend=False,
+            hovermode='closest'
+        )
+    )
+    
+    st.plotly_chart(fig_network, use_container_width=True)
+    
+    
+       
