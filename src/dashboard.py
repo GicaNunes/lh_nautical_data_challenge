@@ -1,7 +1,6 @@
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-import matplotlib.pyplot as plt
 from collections import Counter
 
 # --- Dados principais ---
@@ -72,12 +71,13 @@ else:
 
     vendas['sale_date'] = pd.to_datetime(vendas['sale_date'], errors='coerce')
 
-    # Sazonalidade
-    vendas['mes'] = vendas['sale_date'].dt.to_period('M')
+    # Sazonalidade (corrigido para string)
+    vendas['mes'] = vendas['sale_date'].dt.to_period('M').astype(str)
     mensal = vendas.groupby('mes')['qtd'].sum().reset_index()
     fig_mensal = px.line(mensal, x="mes", y="qtd", title="Vendas Mensais")
     st.plotly_chart(fig_mensal, use_container_width=True)
 
+    # Vendas por dia da semana
     vendas['dia_semana'] = vendas['sale_date'].dt.day_name()
     semana = vendas.groupby('dia_semana')['qtd'].sum().reset_index()
     fig_semana = px.bar(semana, x="dia_semana", y="qtd", title="Vendas por Dia da Semana")
