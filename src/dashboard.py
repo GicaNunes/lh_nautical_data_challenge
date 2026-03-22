@@ -115,14 +115,9 @@ else:
     st.subheader("Top pares de produtos comprados juntos (Tabela)")
     st.dataframe(df_pares)
 
-    # Heatmap de co-ocorrência
-    produtos_unicos = list(set(df_cat['name']))
-    matriz = pd.DataFrame(0, index=produtos_unicos, columns=produtos_unicos)
-    for (p1, p2), count in pares.items():
-        matriz.loc[p1, p2] = count
-        matriz.loc[p2, p1] = count
-
-    fig_heatmap = px.imshow(matriz,
-                            labels=dict(x="Produto", y="Produto", color="Co-ocorrência"),
-                            title="Heatmap de Produtos Comprados Juntos")
-    st.plotly_chart(fig_heatmap, use_container_width=True)
+    # Gráfico de barras dos pares
+    df_pares['Par de Produtos'] = df_pares['Par de Produtos'].apply(lambda x: f"{x[0]} + {x[1]}")
+    fig_pares = px.bar(df_pares, x="Par de Produtos", y="Frequência",
+                       title="Top 10 Pares de Produtos Comprados Juntos",
+                       color="Frequência", color_continuous_scale="Blues")
+    st.plotly_chart(fig_pares, use_container_width=True)
