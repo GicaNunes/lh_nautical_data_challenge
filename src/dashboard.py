@@ -17,21 +17,29 @@ st.title("📊 LH Nauticals Data Challenge")
 # Layout com abas
 tab1, tab2, tab3 = st.tabs(["Questão 4", "Questão 5", "Questão 6"])
 
-# Questão 4 – Prejuízos por Produto
-with tab1:
-    st.subheader("Produtos com maior prejuízo")
-    # Ajuste os nomes das colunas conforme seu CSV
-    if {'valor_total','quantidade','preco_unitario','produto'}.issubset(df.columns.str.lower()):
-        # Normaliza nomes para minúsculo
-        df.columns = df.columns.str.lower()
-        df['prejuizo'] = df['valor_total'] - (df['quantidade'] * df['preco_unitario'])
-        ranking_prejuizo = df.groupby('produto')['prejuizo'].sum().sort_values().head(10).reset_index()
-        fig = px.bar(ranking_prejuizo, x="produto", y="prejuizo", color="prejuizo",
-                     color_continuous_scale="Reds", title="Top 10 Produtos com Prejuízo")
-        st.plotly_chart(fig, use_container_width=True)
-        st.info("Produtos com maior prejuízo devem ser reavaliados em termos de preço ou custo.")
-    else:
-        st.warning("Colunas necessárias para calcular prejuízo não foram encontradas no dataset.")
+# Questão 4 – Ranking de Produtos por Vendas
+st.header("Questão 4 – Ranking de Produtos por Vendas")
+
+if {'id_product','qtd','total'}.issubset(df.columns):
+    # Ranking por valor total
+    ranking_produtos = df.groupby('id_product')['total'].sum().sort_values(ascending=False).head(10).reset_index()
+
+    fig = px.bar(ranking_produtos, x="id_product", y="total", color="total",
+                 color_continuous_scale="Reds", title="Top 10 Produtos por Valor Total de Vendas")
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.info("Produtos com maior valor de vendas podem ser analisados para estratégias de estoque e marketing.")
+
+    # Ranking por quantidade vendida (opcional)
+    ranking_qtd = df.groupby('id_product')['qtd'].sum().sort_values(ascending=False).head(10).reset_index()
+    fig2 = px.bar(ranking_qtd, x="id_product", y="qtd", color="qtd",
+                  color_continuous_scale="Oranges", title="Top 10 Produtos por Quantidade Vendida")
+    st.plotly_chart(fig2, use_container_width=True)
+
+    st.info("Produtos mais vendidos em quantidade podem indicar popularidade e demanda.")
+else:
+    st.warning("Colunas necessárias não encontradas no dataset.")
+
 
 # Questão 5 – Clientes com maior lucro acumulado
 with tab2:
