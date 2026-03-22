@@ -1,7 +1,6 @@
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-import os
 
 # Lê o arquivo bruto
 df_raw = pd.read_csv("data/csv/vendas_2023_2024.csv")
@@ -17,29 +16,25 @@ st.title("📊 LH Nauticals Data Challenge")
 # Layout com abas
 tab1, tab2, tab3 = st.tabs(["Questão 4", "Questão 5", "Questão 6"])
 
-# Questão 4 – Ranking de Produtos por Vendas
-st.header("Questão 4 – Ranking de Produtos por Vendas")
+# Questão 4 – Ranking de Produtos
+with tab1:
+    st.subheader("Produtos com maior valor e quantidade de vendas")
+    if {'id_product','qtd','total'}.issubset(df.columns):
+        # Ranking por valor total
+        ranking_valor = df.groupby('id_product')['total'].sum().sort_values(ascending=False).head(10).reset_index()
+        fig1 = px.bar(ranking_valor, x="id_product", y="total", color="total",
+                      color_continuous_scale="Reds", title="Top 10 Produtos por Valor Total de Vendas")
+        st.plotly_chart(fig1, use_container_width=True)
 
-if {'id_product','qtd','total'}.issubset(df.columns):
-    # Ranking por valor total
-    ranking_produtos = df.groupby('id_product')['total'].sum().sort_values(ascending=False).head(10).reset_index()
+        # Ranking por quantidade vendida
+        ranking_qtd = df.groupby('id_product')['qtd'].sum().sort_values(ascending=False).head(10).reset_index()
+        fig2 = px.bar(ranking_qtd, x="id_product", y="qtd", color="qtd",
+                      color_continuous_scale="Oranges", title="Top 10 Produtos por Quantidade Vendida")
+        st.plotly_chart(fig2, use_container_width=True)
 
-    fig = px.bar(ranking_produtos, x="id_product", y="total", color="total",
-                 color_continuous_scale="Reds", title="Top 10 Produtos por Valor Total de Vendas")
-    st.plotly_chart(fig, use_container_width=True)
-
-    st.info("Produtos com maior valor de vendas podem ser analisados para estratégias de estoque e marketing.")
-
-    # Ranking por quantidade vendida (opcional)
-    ranking_qtd = df.groupby('id_product')['qtd'].sum().sort_values(ascending=False).head(10).reset_index()
-    fig2 = px.bar(ranking_qtd, x="id_product", y="qtd", color="qtd",
-                  color_continuous_scale="Oranges", title="Top 10 Produtos por Quantidade Vendida")
-    st.plotly_chart(fig2, use_container_width=True)
-
-    st.info("Produtos mais vendidos em quantidade podem indicar popularidade e demanda.")
-else:
-    st.warning("Colunas necessárias não encontradas no dataset.")
-
+        st.info("Produtos mais vendidos em quantidade refletem alta demanda, enquanto os de maior valor indicam maior impacto no faturamento.")
+    else:
+        st.warning("Colunas necessárias não encontradas no dataset.")
 
 # Questão 5 – Clientes com maior lucro acumulado
 with tab2:
@@ -62,6 +57,6 @@ with tab3:
         fig = px.bar(media_semana, x="sale_date", y="qtd", color="qtd",
                      color_continuous_scale="Greens", title="Média de Vendas por Dia da Semana")
         st.plotly_chart(fig, use_container_width=True)
-        st.info("Dias fracos podem ser alvo de campanhas promocionais.")
+        st.info("Dias com menor média de vendas podem ser alvo de campanhas promocionais.")
     else:
         st.warning("Colunas necessárias não encontradas no dataset.")
