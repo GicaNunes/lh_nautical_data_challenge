@@ -560,3 +560,15 @@ Friday       8.143646
 Saturday     8.082079
 Sunday       7.947130
 Name: qtd, dtype: float64
+
+=== Exploração Extra ===
+Top 5 clientes VIP:
+full_name
+Lucas Guedes Cunha Lopes                 40266.120009
+Ana Silva Costa Farias Coelho            39274.053590
+Daniela Borges Vieira Farias Mendonça    38703.178678
+Márcia Figueiredo                        37747.069481
+Gabriela Barros Lacerda                  37704.457696
+Name: ticket_medio, dtype: float64
+Top pares de produtos comprados juntos:
+[(('Motor Diesel Yanmar Velocity 37HP', 'Motor Diesel Yanmar Velocity 37HP'), 192), (('Boia de Arqueamento Delta Nexus', 'Boia de Arqueamento Delta Nexus'), 102), (('Cabo de Nylon Delta Velocity Core Mako', 'Cabo de Nylon Delta Velocity Core Mako'), 45), (('GPS Lowrance Evo Storm Drift', 'GPS Lowrance Evo Storm Drift'), 29), (('Motor de Popa Tohatsu Ion Core Nautic 53HP', 'Motor Diesel Yanmar Velocity 37HP'), 4)]

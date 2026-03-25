@@ -1,0 +1,6 @@
+2026-03-24 21:19:14,310 - ERROR - Arquivo não encontrado: [Errno 2] No such file or directory: 'data/csv/vendas_2023_2024.csv'
+2026-03-24 21:19:27,910 - ERROR - Arquivo não encontrado: [Errno 2] No such file or directory: 'data/csv/vendas_2023_2024.csv'
+2026-03-24 21:20:19,409 - ERROR - Arquivo não encontrado: [Errno 2] No such file or directory: 'data/csv/vendas_2023_2024.csv'
+2026-03-24 21:36:59,347 - ERROR - A coluna 'categoria' não existe no CSV.
+2026-03-24 21:39:11,223 - ERROR - A coluna 'categoria' não existe no CSV.
+2026-03-24 21:48:22,221 - ERROR - Não há dados de vendas para Janeiro/2024. O baseline não pode ser avaliado.

@@ -1,38 +1,49 @@
 import pandas as pd
 from sklearn.metrics import mean_absolute_error
+from errors import DataValidationError, FileProcessingError, log_error
 
-# 1. Ler dataset
-vendas = pd.read_csv("../data/csv/vendas_2023_2024.csv")
+def avaliar_baseline():
+    try:
+        vendas = pd.read_csv("../data/csv/vendas_2023_2024.csv")
 
-# 2. Descobrir qual ID corresponde ao produto desejado
-print(vendas[["id_product"]].drop_duplicates())
+        produto = vendas[vendas["id_product"] == 105].copy()
+        if produto.empty:
+            raise DataValidationError("Produto com ID 105 não encontrado no dataset.")
 
-# Suponha que o ID do "Motor de Popa Yamaha Evo Dash 155HP" seja 105
-produto = vendas[vendas["id_product"] == 105].copy()
+        produto["sale_date"] = pd.to_datetime(produto["sale_date"], errors="coerce")
+        diario = produto.groupby("sale_date")["qtd"].sum().reset_index()
 
-# 3. Converter datas
-produto["sale_date"] = pd.to_datetime(produto["sale_date"], errors="coerce")
+        treino = diario[diario["sale_date"] <= pd.to_datetime("2023-12-31")].copy()
+        teste = diario[(diario["sale_date"] >= pd.to_datetime("2024-01-01")) &
+                       (diario["sale_date"] <= pd.to_datetime("2024-01-31"))].copy()
 
-# 4. Agregar vendas por dia
-diario = produto.groupby("sale_date")["qtd"].sum().reset_index()
+        print("Linhas treino:", len(treino))
+        print("Linhas teste:", len(teste))
 
-# 5. Separar treino e teste
-treino = diario[diario["sale_date"] <= pd.to_datetime("2023-12-31")].copy()
-teste = diario[(diario["sale_date"] >= pd.to_datetime("2024-01-01")) &
-               (diario["sale_date"] <= pd.to_datetime("2024-01-31"))].copy()
+        if teste.empty:
+            raise DataValidationError("Não há dados de vendas para Janeiro/2024. O baseline não pode ser avaliado.")
 
-print("Linhas treino:", len(treino))
-print("Linhas teste:", len(teste))
+        previsoes = []
+        for data in teste["sale_date"]:
+            historico = diario[diario["sale_date"] < data]
+            previsao = historico["qtd"].tail(7).mean()
+            previsoes.append(previsao)
 
-if teste.empty:
-    print("Não há dados de vendas para Janeiro/2024. O baseline não pode ser avaliado.")
-else:
-    previsoes = []
-    for data in teste["sale_date"]:
-        historico = diario[diario["sale_date"] < data]
-        previsao = historico["qtd"].tail(7).mean()
-        previsoes.append(previsao)
+        teste["previsao"] = previsoes
+        mae = mean_absolute_error(teste["qtd"], teste["previsao"])
+        print("MAE (Janeiro/2024):", round(mae, 2))
 
-    teste["previsao"] = previsoes
-    mae = mean_absolute_error(teste["qtd"], teste["previsao"])
-    print("MAE (Janeiro/2024):", round(mae, 2))
+        teste.to_csv("../data/csv/previsao_motor_yamaha.csv", index=False)
+
+    except FileNotFoundError as e:
+        log_error(FileProcessingError(f"Arquivo não encontrado: {e}"))
+        print("Erro: arquivo CSV não foi encontrado.")
+    except DataValidationError as e:
+        log_error(e)
+        print("Erro de validação:", e)
+    except Exception as e:
+        log_error(e)
+        print("Erro inesperado:", e)
+
+if __name__ == "__main__":
+    avaliar_baseline()

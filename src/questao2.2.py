@@ -1,35 +1,60 @@
 import pandas as pd
+from errors import FileProcessingError, DataValidationError, log_error
 
-# Carregar dataset bruto
-df = pd.read_csv("../data/csv/produtos_raw.csv")
+def limpar_produtos():
+    try:
+        # Carregar dataset bruto
+        df = pd.read_csv("../data/csv/produtos_raw.csv")
 
-# Contar linhas originais
-linhas_originais = df.shape[0]
+        # Padronizar colunas
+        df.columns = df.columns.str.lower()
 
-# Verificar se existe a coluna 'categoria'
-if "categoria" in df.columns:
-    df["categoria"] = df["categoria"].str.strip().str.lower()
-    mapa_categorias = {
-        "eletronicos": "eletrônicos",
-        "eletrônico": "eletrônicos",
-        "propulsao": "propulsão",
-        "propulsor": "propulsão",
-        "ancoragem": "ancoragem",
-        "ancora": "ancoragem"
-    }
-    df["categoria"] = df["categoria"].replace(mapa_categorias)
-else:
-    print("⚠️ A coluna 'categoria' não existe no CSV. Verifique o nome correto com df.columns.")
+        # Contar linhas originais
+        linhas_originais = df.shape[0]
 
-# Converter valores para numérico (se existir coluna 'valor')
-if "valor" in df.columns:
-    df["valor"] = pd.to_numeric(df["valor"], errors="coerce")
+        # Verificar se existe a coluna 'actual_category'
+        if "actual_category" in df.columns:
+            df["categoria"] = df["actual_category"].str.strip().str.lower()
+            mapa_categorias = {
+                "eletronicos": "eletrônicos",
+                "eletrônico": "eletrônicos",
+                "propulsao": "propulsão",
+                "propulsor": "propulsão",
+                "ancoragem": "ancoragem",
+                "ancora": "ancoragem"
+            }
+            df["categoria"] = df["categoria"].replace(mapa_categorias)
+        else:
+            raise DataValidationError("A coluna 'actual_category' não existe no CSV.")
 
-# Remover duplicatas
-df_limpo = df.drop_duplicates()
+        # Converter valores para numérico (se existir coluna 'valor' ou 'price')
+        if "valor" in df.columns:
+            df["valor"] = pd.to_numeric(df["valor"], errors="coerce")
+        elif "price" in df.columns:
+            df["price"] = pd.to_numeric(df["price"], errors="coerce")
 
-# Contar linhas após limpeza
-linhas_final = df_limpo.shape[0]
-duplicatas_removidas = linhas_originais - linhas_final
+        # Remover duplicatas
+        df_limpo = df.drop_duplicates()
 
-print(f"Produtos duplicados removidos: {duplicatas_removidas}")
+        # Contar linhas após limpeza
+        linhas_final = df_limpo.shape[0]
+        duplicatas_removidas = linhas_originais - linhas_final
+
+        print(f"Produtos duplicados removidos: {duplicatas_removidas}")
+
+        # Salvar dataset limpo
+        df_limpo.to_csv("../data/csv/produtos_clean.csv", index=False)
+        print("Arquivo produtos_clean.csv gerado com sucesso!")
+
+    except FileNotFoundError as e:
+        log_error(FileProcessingError(f"Arquivo não encontrado: {e}"))
+        print("Erro: arquivo CSV não foi encontrado.")
+    except DataValidationError as e:
+        log_error(e)
+        print("Erro de validação:", e)
+    except Exception as e:
+        log_error(e)
+        print("Erro inesperado:", e)
+
+if __name__ == "__main__":
+    limpar_produtos()

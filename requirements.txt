@@ -6,9 +6,6 @@ prophet
 fpdf2
 plotly
 requests
-sklearn.metrics.pairwise
 numpy
-
-
-
-
+streamlit
+Unidecode
