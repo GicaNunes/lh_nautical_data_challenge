@@ -1,36 +1,146 @@
-# --- Depois de aplicar filtros de data no df ---
-df_cat = df.merge(produtos, left_on='id_product', right_on='code', how='left')
+import pandas as pd
+import streamlit as st
+import plotly.express as px
+import unidecode
+import re
+from collections import Counter
 
-# Função para encurtar nomes longos
+# --- Configuração da página ---
+st.set_page_config(layout="wide", page_title="Dashboard V2", page_icon="📊")
+
+# --- Função para limpar categorias ---
+def limpar_categoria(cat):
+    if pd.isna(cat):
+        return None
+    cat = unidecode.unidecode(cat).lower().strip()
+    cat = re.sub(r"\s+", "", cat)
+    return cat
+
+# --- Função para encurtar nomes longos ---
 def encurtar_nome(nome):
     if len(nome) > 30:
         return nome[:27] + "..."
     return nome
 
-# Adicionar coluna com nomes encurtados
+# --- Carregar dados ---
+df = pd.read_csv("data/csv/vendas_2023_2024.csv")
+df['sale_date'] = pd.to_datetime(df['sale_date'], errors='coerce')
+df = df.dropna(subset=['sale_date'])
+
+produtos = pd.read_csv("data/csv/produtos_raw.csv")
+clientes = pd.read_json("data/json/clientes_crm.json")
+
+# --- Limpeza de categorias ---
+produtos["actual_category"] = produtos["actual_category"].apply(limpar_categoria)
+mapa_categorias = {
+    "ancoragem": "ancoragem", "ancoraguem": "ancoragem", "ancorajm": "ancoragem",
+    "ancorajen": "ancoragem", "encoragem": "ancoragem", "ancora": "ancoragem",
+    "eletronicos": "eletronicos", "eletronico": "eletronicos", "eletronicoz": "eletronicos",
+    "eletroniscos": "eletronicos", "eletrunicos": "eletronicos", "eletroiscos": "eletronicos",
+    "propulsao": "propulsao", "propucao": "propulsao", "propulsor": "propulsao",
+    "propulsam": "propulsao", "propulssao": "propulsao", "prop": "propulsao"
+}
+produtos["actual_category"] = produtos["actual_category"].replace(mapa_categorias)
+
+# --- Menu lateral ---
+page = st.sidebar.radio("Selecione o dashboard:", ["Executivo", "Explorações Adicionais"])
+
+# --- Filtros globais ---
+st.sidebar.subheader("Filtros")
+data_ini = st.sidebar.date_input("Data inicial", df['sale_date'].min())
+data_fim = st.sidebar.date_input("Data final", df['sale_date'].max())
+df = df[(df['sale_date'] >= pd.to_datetime(data_ini)) & (df['sale_date'] <= pd.to_datetime(data_fim))]
+
+# --- Criar df_cat (merge com produtos) ---
+df_cat = df.merge(produtos, left_on='id_product', right_on='code', how='left')
 df_cat['name_curto'] = df_cat['name'].apply(encurtar_nome)
 
-# --- Questão 8: Ranking de categorias ---
-ranking = df_cat.groupby('actual_category')['qtd'].sum().sort_values(ascending=False).reset_index()
-fig_cat_bar = px.bar(ranking, x="actual_category", y="qtd", title="📦 Ranking de Categorias")
-fig_cat_donut = px.pie(ranking, names="actual_category", values="qtd", hole=0.4,
-                       title="📦 Distribuição de Vendas por Categoria")
+# --- Dashboard Executivo ---
+if page == "Executivo":
+    st.title("📊 Dashboard Executivo")
 
-# --- Top produtos ---
-top_produtos = df_cat.groupby('name_curto')['qtd'].sum().sort_values(ascending=False).head(10).reset_index()
-fig_top = px.bar(top_produtos, x="name_curto", y="qtd", title="🏆 Top 10 Produtos")
+    # Questão 2 - Estatísticas
+    stats = {
+        "Total de vendas (linhas)": df.shape[0],
+        "Número de colunas": df.shape[1],
+        "Data mínima": df['sale_date'].min(),
+        "Data máxima": df['sale_date'].max(),
+        "Valor mínimo": df['total'].min(),
+        "Valor máximo": df['total'].max(),
+        "Valor médio": df['total'].mean()
+    }
+    fig_stats = px.bar(pd.DataFrame(stats.items(), columns=["Métrica", "Valor"]),
+                       x="Métrica", y="Valor", title="📈 Estatísticas Gerais")
 
-# --- Pares de produtos ---
-coocorrencia = df_cat.groupby(['id_client','sale_date'])['name_curto'].apply(list)
-from collections import Counter
-pares = Counter()
-for lista in coocorrencia:
-    for i in range(len(lista)):
-        for j in range(i+1, len(lista)):
-            pares[(lista[i], lista[j])] += 1
-pares_top = pares.most_common(10)
-df_pares = pd.DataFrame(pares_top, columns=["Par de Produtos", "Frequência"])
-df_pares['Par de Produtos'] = df_pares['Par de Produtos'].apply(lambda x: f"{x[0]} + {x[1]}")
-fig_pares = px.bar(df_pares, x="Par de Produtos", y="Frequência",
-                   title="🤝 Top 10 Pares de Produtos Comprados Juntos",
-                   color="Frequência", color_continuous_scale="Blues")
+    # Questão 3 - Lucro acumulado por cliente
+    lucro_clientes = df.groupby('id_client')['total'].sum().sort_values(ascending=False).head(10).reset_index()
+    fig_clientes = px.bar(lucro_clientes, x="id_client", y="total", color="total",
+                          color_continuous_scale="Blues", title="💰 Top 10 Clientes por Lucro")
+
+    # Questão 8 - Distribuição de categorias
+    ranking = df_cat.groupby('actual_category')['qtd'].sum().sort_values(ascending=False).reset_index()
+    fig_cat_bar = px.bar(ranking, x="actual_category", y="qtd", title="📦 Ranking de Categorias")
+    fig_cat_donut = px.pie(ranking, names="actual_category", values="qtd", hole=0.4,
+                           title="📦 Distribuição de Vendas por Categoria")
+
+    # Layout em quadrados (2x2)
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("Questão 2 - Estatísticas")
+        st.plotly_chart(fig_stats, use_container_width=True)
+    with col2:
+        st.subheader("Questão 3 - Lucro por Cliente")
+        st.plotly_chart(fig_clientes, use_container_width=True)
+
+    col3, col4 = st.columns(2)
+    with col3:
+        st.subheader("Questão 8 - Ranking de Categorias")
+        st.plotly_chart(fig_cat_bar, use_container_width=True)
+    with col4:
+        st.subheader("Questão 8 - Distribuição de Categorias")
+        st.plotly_chart(fig_cat_donut, use_container_width=True)
+
+# --- Dashboard Explorações Adicionais ---
+else:
+    st.title("🔎 Explorações Adicionais")
+
+    # Vendas mensais
+    df['mes'] = df['sale_date'].dt.to_period('M').astype(str)
+    mensal = df.groupby('mes')['qtd'].sum().reset_index()
+    fig_mensal = px.line(mensal, x="mes", y="qtd", title="📆 Vendas Mensais")
+
+    # Vendas por dia da semana
+    df['dia_semana'] = df['sale_date'].dt.day_name()
+    semana = df.groupby('dia_semana')['qtd'].sum().reset_index()
+    fig_semana = px.bar(semana, x="dia_semana", y="qtd", title="📆 Vendas por Dia da Semana")
+
+    # Top produtos
+    top_produtos = df_cat.groupby('name_curto')['qtd'].sum().sort_values(ascending=False).head(10).reset_index()
+    fig_top = px.bar(top_produtos, x="name_curto", y="qtd", title="🏆 Top 10 Produtos")
+
+    # Pares de produtos
+    coocorrencia = df_cat.groupby(['id_client','sale_date'])['name_curto'].apply(list)
+    pares = Counter()
+    for lista in coocorrencia:
+        for i in range(len(lista)):
+            for j in range(i+1, len(lista)):
+                pares[(lista[i], lista[j])] += 1
+    pares_top = pares.most_common(10)
+    df_pares = pd.DataFrame(pares_top, columns=["Par de Produtos", "Frequência"])
+    df_pares['Par de Produtos'] = df_pares['Par de Produtos'].apply(lambda x: f"{x[0]} + {x[1]}")
+    fig_pares = px.bar(df_pares, x="Par de Produtos", y="Frequência",
+                       title="🤝 Top 10 Pares de Produtos Comprados Juntos",
+                       color="Frequência", color_continuous_scale="Blues")
+
+    # Layout em quadrados (2x2)
+    col1, col2 = st.columns(2)
+    with col1:
+        st.plotly_chart(fig_mensal, use_container_width=True)
+    with col2:
+        st.plotly_chart(fig_semana, use_container_width=True)
+
+    col3, col4 = st.columns(2)
+    with col3:
+        st.plotly_chart(fig_top, use_container_width=True)
+    with col4:
+        st.plotly_chart(fig_pares, use_container_width=True)
