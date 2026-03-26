@@ -8,6 +8,16 @@ from collections import Counter
 # --- Configuração da página ---
 st.set_page_config(layout="wide", page_title="Dashboard V2", page_icon="📊")
 
+# Forçar tema escuro
+st.markdown(
+    """
+    <style>
+    body { background-color: #0e1117; color: #fafafa; }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # --- Função para limpar categorias ---
 def limpar_categoria(cat):
     if pd.isna(cat):
@@ -18,8 +28,10 @@ def limpar_categoria(cat):
 
 # --- Função para encurtar nomes longos ---
 def encurtar_nome(nome):
-    if len(nome) > 30:
-        return nome[:27] + "..."
+    # pega só as 3 primeiras palavras
+    partes = nome.split()
+    if len(partes) > 3:
+        return " ".join(partes[:3]) + "..."
     return nome
 
 # --- Carregar dados ---
@@ -33,11 +45,11 @@ clientes = pd.read_json("data/json/clientes_crm.json")
 # --- Limpeza de categorias ---
 produtos["actual_category"] = produtos["actual_category"].apply(limpar_categoria)
 mapa_categorias = {
-    "ancoragem": "ancoragem", "ancoraguem": "ancoragem", "ancorajm": "ancoragem",
+    "ancoragem": "ancoragem", "ancorajem": "ancoragem", "encoragi": "ancoragem", "ancoragen": "ancoragem", "a n c o r a g e m": "ancoragem","ancoraguem": "ancoragem", "ancorajm": "ancoragem",
     "ancorajen": "ancoragem", "encoragem": "ancoragem", "ancora": "ancoragem",
-    "eletronicos": "eletronicos", "eletronico": "eletronicos", "eletronicoz": "eletronicos",
+    "eletronicos": "eletronicos", "e l e t r o n  i c o s": "eletronicos", "eletronico": "eletronicos", "eletronicoz": "eletronicos",
     "eletroniscos": "eletronicos", "eletrunicos": "eletronicos", "eletroiscos": "eletronicos",
-    "propulsao": "propulsao", "propucao": "propulsao", "propulsor": "propulsao",
+    "propulsao": "propulsao", "propulcao": "propulsao", "p r o p u l s a o": "propulsao", "propucao": "propulsao", "propulsor": "propulsao",
     "propulsam": "propulsao", "propulssao": "propulsao", "prop": "propulsao"
 }
 produtos["actual_category"] = produtos["actual_category"].replace(mapa_categorias)
@@ -59,7 +71,7 @@ df_cat['name_curto'] = df_cat['name'].apply(encurtar_nome)
 if page == "Executivo":
     st.title("📊 Dashboard Executivo")
 
-    # Questão 2 - Estatísticas
+    # Questão 2 - Estatísticas (mostrar tabela)
     stats = {
         "Total de vendas (linhas)": df.shape[0],
         "Número de colunas": df.shape[1],
@@ -69,8 +81,8 @@ if page == "Executivo":
         "Valor máximo": df['total'].max(),
         "Valor médio": df['total'].mean()
     }
-    fig_stats = px.bar(pd.DataFrame(stats.items(), columns=["Métrica", "Valor"]),
-                       x="Métrica", y="Valor", title="📈 Estatísticas Gerais")
+    st.subheader("Questão 2 - Estatísticas Gerais")
+    st.table(pd.DataFrame(stats.items(), columns=["Métrica", "Valor"]))
 
     # Questão 3 - Lucro acumulado por cliente
     lucro_clientes = df.groupby('id_client')['total'].sum().sort_values(ascending=False).head(10).reset_index()
@@ -86,17 +98,14 @@ if page == "Executivo":
     # Layout em quadrados (2x2)
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("Questão 2 - Estatísticas")
-        st.plotly_chart(fig_stats, use_container_width=True)
-    with col2:
         st.subheader("Questão 3 - Lucro por Cliente")
         st.plotly_chart(fig_clientes, use_container_width=True)
+    with col2:
+        st.subheader("Questão 8 - Ranking de Categorias")
+        st.plotly_chart(fig_cat_bar, use_container_width=True)
 
     col3, col4 = st.columns(2)
     with col3:
-        st.subheader("Questão 8 - Ranking de Categorias")
-        st.plotly_chart(fig_cat_bar, use_container_width=True)
-    with col4:
         st.subheader("Questão 8 - Distribuição de Categorias")
         st.plotly_chart(fig_cat_donut, use_container_width=True)
 
@@ -114,7 +123,7 @@ else:
     semana = df.groupby('dia_semana')['qtd'].sum().reset_index()
     fig_semana = px.bar(semana, x="dia_semana", y="qtd", title="📆 Vendas por Dia da Semana")
 
-    # Top produtos
+    # Top produtos (com nomes encurtados)
     top_produtos = df_cat.groupby('name_curto')['qtd'].sum().sort_values(ascending=False).head(10).reset_index()
     fig_top = px.bar(top_produtos, x="name_curto", y="qtd", title="🏆 Top 10 Produtos")
 
