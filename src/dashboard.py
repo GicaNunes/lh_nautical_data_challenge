@@ -5,6 +5,12 @@ from collections import Counter
 import unidecode
 import re
 
+# --- Função para corrigir colunas de texto ---
+def fix_strings(df):
+    for col in df.select_dtypes(include=["string", "object"]).columns:
+        df[col] = df[col].astype(str)
+    return df
+
 # --- Carregar dados ---
 df = pd.read_csv("data/csv/vendas_2023_2024.csv")
 df['sale_date'] = pd.to_datetime(df['sale_date'], errors='coerce')
@@ -13,10 +19,10 @@ df = df.dropna(subset=['sale_date'])
 produtos = pd.read_csv("data/csv/produtos_raw.csv")
 clientes = pd.read_json("data/json/clientes_crm.json")
 
-# --- Converter colunas de texto para str ---
-df = df.astype({c: str for c in df.select_dtypes(include="string").columns})
-produtos = produtos.astype({c: str for c in produtos.select_dtypes(include="string").columns})
-clientes = clientes.astype({c: str for c in clientes.select_dtypes(include="string").columns})
+# --- Corrigir colunas de texto ---
+df = fix_strings(df)
+produtos = fix_strings(produtos)
+clientes = fix_strings(clientes)
 
 # --- Função de limpeza de categorias ---
 def limpar_categoria(cat):
@@ -67,7 +73,7 @@ if page == "Executivo":
     # Questão 3 - Lucro acumulado por cliente
     st.subheader("Questão 3 - Lucro por Cliente")
     lucro_clientes = df.groupby('id_client')['total'].sum().sort_values(ascending=False).head(10).reset_index()
-    lucro_clientes['id_client'] = lucro_clientes['id_client'].astype(str)  # garantir string
+    lucro_clientes['id_client'] = lucro_clientes['id_client'].astype(str)
     fig_clientes = px.bar(lucro_clientes, x="id_client", y="total", color="total",
                           color_continuous_scale="Blues", title="Top 10 Clientes por Lucro")
     st.plotly_chart(fig_clientes, use_container_width=True)
@@ -99,8 +105,7 @@ else:
     st.plotly_chart(fig_mensal, use_container_width=True)
 
     # Vendas por dia da semana
-    df['dia_semana'] = df['sale_date'].dt.day_name()
-    df['dia_semana'] = df['dia_semana'].astype(str)
+    df['dia_semana'] = df['sale_date'].dt.day_name().astype(str)
     semana = df.groupby('dia_semana')['qtd'].sum().reset_index()
     fig_semana = px.bar(semana, x="dia_semana", y="qtd", title="Vendas por Dia da Semana")
     st.plotly_chart(fig_semana, use_container_width=True)
