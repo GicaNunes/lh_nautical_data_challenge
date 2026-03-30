@@ -15,13 +15,12 @@ def fix_strings(df):
 df = pd.read_csv("data/csv/vendas_2023_2024.csv")
 df['sale_date'] = pd.to_datetime(df['sale_date'], errors='coerce')
 df = df.dropna(subset=['sale_date'])
+df = fix_strings(df)
 
 produtos = pd.read_csv("data/csv/produtos_raw.csv")
-clientes = pd.read_json("data/json/clientes_crm.json")
-
-# --- Corrigir colunas de texto ---
-df = fix_strings(df)
 produtos = fix_strings(produtos)
+
+clientes = pd.read_json("data/json/clientes_crm.json")
 clientes = fix_strings(clientes)
 
 # --- Função de limpeza de categorias ---
@@ -52,6 +51,7 @@ st.sidebar.subheader("Filtros")
 data_ini = st.sidebar.date_input("Data inicial", df['sale_date'].min())
 data_fim = st.sidebar.date_input("Data final", df['sale_date'].max())
 df = df[(df['sale_date'] >= pd.to_datetime(data_ini)) & (df['sale_date'] <= pd.to_datetime(data_fim))]
+df = fix_strings(df)  # garantir que filtros não gerem LargeUtf8
 
 # --- Dashboard Executivo ---
 if page == "Executivo":
@@ -73,7 +73,7 @@ if page == "Executivo":
     # Questão 3 - Lucro acumulado por cliente
     st.subheader("Questão 3 - Lucro por Cliente")
     lucro_clientes = df.groupby('id_client')['total'].sum().sort_values(ascending=False).head(10).reset_index()
-    lucro_clientes['id_client'] = lucro_clientes['id_client'].astype(str)
+    lucro_clientes = fix_strings(lucro_clientes)
     fig_clientes = px.bar(lucro_clientes, x="id_client", y="total", color="total",
                           color_continuous_scale="Blues", title="Top 10 Clientes por Lucro")
     st.plotly_chart(fig_clientes, use_container_width=True)
@@ -82,8 +82,9 @@ if page == "Executivo":
     # Questão 8 - Distribuição de categorias
     st.subheader("Questão 8 - Distribuição de Categorias")
     df_cat = df.merge(produtos, left_on='id_product', right_on='code', how='left')
-    df_cat['actual_category'] = df_cat['actual_category'].astype(str)
+    df_cat = fix_strings(df_cat)
     ranking = df_cat.groupby('actual_category')['qtd'].sum().sort_values(ascending=False).reset_index()
+    ranking = fix_strings(ranking)
 
     fig_cat = px.bar(ranking, x="actual_category", y="qtd", title="Ranking de Categorias (limpas)")
     st.plotly_chart(fig_cat, use_container_width=True)
@@ -100,20 +101,25 @@ else:
 
     # Vendas mensais
     df['mes'] = df['sale_date'].dt.to_period('M').astype(str)
+    df = fix_strings(df)
     mensal = df.groupby('mes')['qtd'].sum().reset_index()
+    mensal = fix_strings(mensal)
     fig_mensal = px.line(mensal, x="mes", y="qtd", title="Vendas Mensais")
     st.plotly_chart(fig_mensal, use_container_width=True)
 
     # Vendas por dia da semana
     df['dia_semana'] = df['sale_date'].dt.day_name().astype(str)
+    df = fix_strings(df)
     semana = df.groupby('dia_semana')['qtd'].sum().reset_index()
+    semana = fix_strings(semana)
     fig_semana = px.bar(semana, x="dia_semana", y="qtd", title="Vendas por Dia da Semana")
     st.plotly_chart(fig_semana, use_container_width=True)
 
     # Top produtos
     df_cat = df.merge(produtos, left_on='id_product', right_on='code', how='left')
-    df_cat['name'] = df_cat['name'].astype(str)
+    df_cat = fix_strings(df_cat)
     top_produtos = df_cat.groupby('name')['qtd'].sum().sort_values(ascending=False).head(10).reset_index()
+    top_produtos = fix_strings(top_produtos)
     fig_top = px.bar(top_produtos, x="name", y="qtd", title="Top 10 Produtos")
     st.plotly_chart(fig_top, use_container_width=True)
 
@@ -127,6 +133,7 @@ else:
     pares_top = pares.most_common(10)
     df_pares = pd.DataFrame(pares_top, columns=["Par de Produtos", "Frequência"])
     df_pares['Par de Produtos'] = df_pares['Par de Produtos'].apply(lambda x: f"{x[0]} + {x[1]}")
+    df_pares = fix_strings(df_pares)
     st.dataframe(df_pares)
     fig_pares = px.bar(df_pares, x="Par de Produtos", y="Frequência",
                        title="Top 10 Pares de Produtos Comprados Juntos",
