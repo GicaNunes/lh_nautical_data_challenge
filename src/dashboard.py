@@ -13,6 +13,11 @@ df = df.dropna(subset=['sale_date'])
 produtos = pd.read_csv("data/csv/produtos_raw.csv")
 clientes = pd.read_json("data/json/clientes_crm.json")
 
+# --- Converter colunas de texto para str ---
+df = df.astype({c: str for c in df.select_dtypes(include="string").columns})
+produtos = produtos.astype({c: str for c in produtos.select_dtypes(include="string").columns})
+clientes = clientes.astype({c: str for c in clientes.select_dtypes(include="string").columns})
+
 # --- Função de limpeza de categorias ---
 def limpar_categoria(cat):
     if pd.isna(cat):
@@ -62,14 +67,16 @@ if page == "Executivo":
     # Questão 3 - Lucro acumulado por cliente
     st.subheader("Questão 3 - Lucro por Cliente")
     lucro_clientes = df.groupby('id_client')['total'].sum().sort_values(ascending=False).head(10).reset_index()
+    lucro_clientes['id_client'] = lucro_clientes['id_client'].astype(str)  # garantir string
     fig_clientes = px.bar(lucro_clientes, x="id_client", y="total", color="total",
                           color_continuous_scale="Blues", title="Top 10 Clientes por Lucro")
     st.plotly_chart(fig_clientes, use_container_width=True)
     st.dataframe(lucro_clientes)
 
-    # Questão 8 - Distribuição de categorias (corrigida)
+    # Questão 8 - Distribuição de categorias
     st.subheader("Questão 8 - Distribuição de Categorias")
     df_cat = df.merge(produtos, left_on='id_product', right_on='code', how='left')
+    df_cat['actual_category'] = df_cat['actual_category'].astype(str)
     ranking = df_cat.groupby('actual_category')['qtd'].sum().sort_values(ascending=False).reset_index()
 
     fig_cat = px.bar(ranking, x="actual_category", y="qtd", title="Ranking de Categorias (limpas)")
@@ -93,12 +100,14 @@ else:
 
     # Vendas por dia da semana
     df['dia_semana'] = df['sale_date'].dt.day_name()
+    df['dia_semana'] = df['dia_semana'].astype(str)
     semana = df.groupby('dia_semana')['qtd'].sum().reset_index()
     fig_semana = px.bar(semana, x="dia_semana", y="qtd", title="Vendas por Dia da Semana")
     st.plotly_chart(fig_semana, use_container_width=True)
 
     # Top produtos
     df_cat = df.merge(produtos, left_on='id_product', right_on='code', how='left')
+    df_cat['name'] = df_cat['name'].astype(str)
     top_produtos = df_cat.groupby('name')['qtd'].sum().sort_values(ascending=False).head(10).reset_index()
     fig_top = px.bar(top_produtos, x="name", y="qtd", title="Top 10 Produtos")
     st.plotly_chart(fig_top, use_container_width=True)
