@@ -118,4 +118,3 @@ else:
                        title="Top 10 Pares de Produtos Comprados Juntos",
                        color="Frequência", color_continuous_scale="Blues")
     st.plotly_chart(fig_pares, use_container_width=True)
-esse é meu codigo
