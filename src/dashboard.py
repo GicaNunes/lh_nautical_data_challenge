@@ -5,8 +5,8 @@ from collections import Counter
 import unidecode
 import re
 
-# --- Função para corrigir colunas de texto ---
-def fix_strings(df):
+# --- Função para preparar DataFrames para Streamlit ---
+def prepare_for_streamlit(df):
     for col in df.select_dtypes(include=["string", "object"]).columns:
         df[col] = df[col].astype(str)
     return df
@@ -15,31 +15,32 @@ def fix_strings(df):
 df = pd.read_csv("data/csv/vendas_2023_2024.csv")
 df['sale_date'] = pd.to_datetime(df['sale_date'], errors='coerce')
 df = df.dropna(subset=['sale_date'])
-df = fix_strings(df)
+df = prepare_for_streamlit(df)
 
 produtos = pd.read_csv("data/csv/produtos_raw.csv")
-produtos = fix_strings(produtos)
+produtos = prepare_for_streamlit(produtos)
 
 clientes = pd.read_json("data/json/clientes_crm.json")
-clientes = fix_strings(clientes)
+clientes = prepare_for_streamlit(clientes)
 
 # --- Função de limpeza de categorias ---
 def limpar_categoria(cat):
     if pd.isna(cat):
         return None
     cat = unidecode.unidecode(cat).lower().strip()
-    cat = re.sub(r"\s+", "", cat)  # remove espaços entre letras
+    cat = re.sub(r"\s+", "", cat)
     return cat
 
 produtos["actual_category"] = produtos["actual_category"].apply(limpar_categoria)
 
 mapa_categorias = {
-    "ancoragem": "ancoragem", "ancorajem": "ancoragem", "encoragi": "ancoragem", "ancoragen": "ancoragem", "a n c o r a g e m": "ancoragem","ancoraguem": "ancoragem", "ancorajm": "ancoragem",
+    "ancoragem": "ancoragem", "ancorajem": "ancoragem", "encoragi": "ancoragem", "ancoragen": "ancoragem",
+    "a n c o r a g e m": "ancoragem","ancoraguem": "ancoragem", "ancorajm": "ancoragem",
     "ancorajen": "ancoragem", "encoragem": "ancoragem", "ancora": "ancoragem",
-    "eletronicos": "eletronicos", "e l e t r o n  i c o s": "eletronicos", "eletronico": "eletronicos", "eletronicoz": "eletronicos",
-    "eletroniscos": "eletronicos", "eletrunicos": "eletronicos", "eletroiscos": "eletronicos",
-    "propulsao": "propulsao", "propulcao": "propulsao", "p r o p u l s a o": "propulsao", "propucao": "propulsao", "propulsor": "propulsao",
-    "propulsam": "propulsao", "propulssao": "propulsao", "prop": "propulsao"
+    "eletronicos": "eletronicos", "e l e t r o n  i c o s": "eletronicos", "eletronico": "eletronicos",
+    "eletronicoz": "eletronicos","eletroniscos": "eletronicos", "eletrunicos": "eletronicos", "eletroiscos": "eletronicos",
+    "propulsao": "propulsao", "propulcao": "propulsao", "p r o p u l s a o": "propulsao", "propucao": "propulsao",
+    "propulsor": "propulsao","propulsam": "propulsao", "propulssao": "propulsao", "prop": "propulsao"
 }
 produtos["actual_category"] = produtos["actual_category"].replace(mapa_categorias)
 
@@ -51,7 +52,7 @@ st.sidebar.subheader("Filtros")
 data_ini = st.sidebar.date_input("Data inicial", df['sale_date'].min())
 data_fim = st.sidebar.date_input("Data final", df['sale_date'].max())
 df = df[(df['sale_date'] >= pd.to_datetime(data_ini)) & (df['sale_date'] <= pd.to_datetime(data_fim))]
-df = fix_strings(df)  # garantir que filtros não gerem LargeUtf8
+df = prepare_for_streamlit(df)
 
 # --- Dashboard Executivo ---
 if page == "Executivo":
@@ -68,12 +69,13 @@ if page == "Executivo":
         "Valor máximo": df['total'].max(),
         "Valor médio": df['total'].mean()
     }
-    st.table(pd.DataFrame(stats.items(), columns=["Métrica", "Valor"]))
+    stats_df = prepare_for_streamlit(pd.DataFrame(stats.items(), columns=["Métrica", "Valor"]))
+    st.table(stats_df)
 
     # Questão 3 - Lucro acumulado por cliente
     st.subheader("Questão 3 - Lucro por Cliente")
     lucro_clientes = df.groupby('id_client')['total'].sum().sort_values(ascending=False).head(10).reset_index()
-    lucro_clientes = fix_strings(lucro_clientes)
+    lucro_clientes = prepare_for_streamlit(lucro_clientes)
     fig_clientes = px.bar(lucro_clientes, x="id_client", y="total", color="total",
                           color_continuous_scale="Blues", title="Top 10 Clientes por Lucro")
     st.plotly_chart(fig_clientes, use_container_width=True)
@@ -82,9 +84,9 @@ if page == "Executivo":
     # Questão 8 - Distribuição de categorias
     st.subheader("Questão 8 - Distribuição de Categorias")
     df_cat = df.merge(produtos, left_on='id_product', right_on='code', how='left')
-    df_cat = fix_strings(df_cat)
+    df_cat = prepare_for_streamlit(df_cat)
     ranking = df_cat.groupby('actual_category')['qtd'].sum().sort_values(ascending=False).reset_index()
-    ranking = fix_strings(ranking)
+    ranking = prepare_for_streamlit(ranking)
 
     fig_cat = px.bar(ranking, x="actual_category", y="qtd", title="Ranking de Categorias (limpas)")
     st.plotly_chart(fig_cat, use_container_width=True)
@@ -101,25 +103,25 @@ else:
 
     # Vendas mensais
     df['mes'] = df['sale_date'].dt.to_period('M').astype(str)
-    df = fix_strings(df)
+    df = prepare_for_streamlit(df)
     mensal = df.groupby('mes')['qtd'].sum().reset_index()
-    mensal = fix_strings(mensal)
+    mensal = prepare_for_streamlit(mensal)
     fig_mensal = px.line(mensal, x="mes", y="qtd", title="Vendas Mensais")
     st.plotly_chart(fig_mensal, use_container_width=True)
 
     # Vendas por dia da semana
     df['dia_semana'] = df['sale_date'].dt.day_name().astype(str)
-    df = fix_strings(df)
+    df = prepare_for_streamlit(df)
     semana = df.groupby('dia_semana')['qtd'].sum().reset_index()
-    semana = fix_strings(semana)
+    semana = prepare_for_streamlit(semana)
     fig_semana = px.bar(semana, x="dia_semana", y="qtd", title="Vendas por Dia da Semana")
     st.plotly_chart(fig_semana, use_container_width=True)
 
     # Top produtos
     df_cat = df.merge(produtos, left_on='id_product', right_on='code', how='left')
-    df_cat = fix_strings(df_cat)
+    df_cat = prepare_for_streamlit(df_cat)
     top_produtos = df_cat.groupby('name')['qtd'].sum().sort_values(ascending=False).head(10).reset_index()
-    top_produtos = fix_strings(top_produtos)
+    top_produtos = prepare_for_streamlit(top_produtos)
     fig_top = px.bar(top_produtos, x="name", y="qtd", title="Top 10 Produtos")
     st.plotly_chart(fig_top, use_container_width=True)
 
@@ -133,7 +135,7 @@ else:
     pares_top = pares.most_common(10)
     df_pares = pd.DataFrame(pares_top, columns=["Par de Produtos", "Frequência"])
     df_pares['Par de Produtos'] = df_pares['Par de Produtos'].apply(lambda x: f"{x[0]} + {x[1]}")
-    df_pares = fix_strings(df_pares)
+    df_pares = prepare_for_streamlit(df_pares)
     st.dataframe(df_pares)
     fig_pares = px.bar(df_pares, x="Par de Produtos", y="Frequência",
                        title="Top 10 Pares de Produtos Comprados Juntos",
