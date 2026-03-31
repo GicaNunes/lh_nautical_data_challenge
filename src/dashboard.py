@@ -15,6 +15,8 @@ def prepare_for_streamlit(df):
 df = pd.read_csv("data/csv/vendas_2023_2024.csv")
 df['sale_date'] = pd.to_datetime(df['sale_date'], errors='coerce')
 df = df.dropna(subset=['sale_date'])
+df["id_client"] = df["id_client"].astype(str)
+df["total"] = pd.to_numeric(df["total"], errors="coerce")
 df = prepare_for_streamlit(df)
 
 produtos = pd.read_csv("data/csv/produtos_raw.csv")
@@ -43,6 +45,7 @@ mapa_categorias = {
     "propulsor": "propulsao","propulsam": "propulsao", "propulssao": "propulsao", "prop": "propulsao"
 }
 produtos["actual_category"] = produtos["actual_category"].replace(mapa_categorias)
+produtos["actual_category"] = produtos["actual_category"].fillna("Outros")
 
 # --- Menu lateral ---
 page = st.sidebar.radio("Selecione o dashboard:", ["Executivo", "Explorações Adicionais"])
@@ -63,11 +66,11 @@ if page == "Executivo":
     stats = {
         "Linhas": df.shape[0],
         "Colunas": df.shape[1],
-        "Data mínima": df['sale_date'].min(),
-        "Data máxima": df['sale_date'].max(),
+        "Data mínima": str(df['sale_date'].min().date()),
+        "Data máxima": str(df['sale_date'].max().date()),
         "Valor mínimo": df['total'].min(),
         "Valor máximo": df['total'].max(),
-        "Valor médio": df['total'].mean()
+        "Valor médio": round(df['total'].mean(), 2)
     }
     stats_df = prepare_for_streamlit(pd.DataFrame(stats.items(), columns=["Métrica", "Valor"]))
     st.table(stats_df)
@@ -76,8 +79,9 @@ if page == "Executivo":
     st.subheader("Questão 3 - Lucro por Cliente")
     lucro_clientes = df.groupby('id_client')['total'].sum().sort_values(ascending=False).head(10).reset_index()
     lucro_clientes = prepare_for_streamlit(lucro_clientes)
-    fig_clientes = px.bar(lucro_clientes, x="id_client", y="total", color="total",
-                          color_continuous_scale="Blues", title="Top 10 Clientes por Lucro")
+    fig_clientes = px.bar(lucro_clientes, x="id_client", y="total",
+                          color="id_client", color_discrete_sequence=px.colors.qualitative.Set2,
+                          title="Top 10 Clientes por Lucro")
     st.plotly_chart(fig_clientes, use_container_width=True)
     st.dataframe(lucro_clientes)
 
@@ -88,10 +92,13 @@ if page == "Executivo":
     ranking = df_cat.groupby('actual_category')['qtd'].sum().sort_values(ascending=False).reset_index()
     ranking = prepare_for_streamlit(ranking)
 
-    fig_cat = px.bar(ranking, x="actual_category", y="qtd", title="Ranking de Categorias (limpas)")
+    fig_cat = px.bar(ranking, x="actual_category", y="qtd",
+                     color="actual_category", color_discrete_sequence=px.colors.qualitative.Dark2,
+                     title="Ranking de Categorias (limpas)")
     st.plotly_chart(fig_cat, use_container_width=True)
 
     fig_donut = px.pie(ranking, names="actual_category", values="qtd", hole=0.4,
+                       color="actual_category", color_discrete_sequence=px.colors.qualitative.Set3,
                        title="Distribuição de Vendas por Categoria (limpas)")
     st.plotly_chart(fig_donut, use_container_width=True)
 
@@ -106,7 +113,9 @@ else:
     df = prepare_for_streamlit(df)
     mensal = df.groupby('mes')['qtd'].sum().reset_index()
     mensal = prepare_for_streamlit(mensal)
-    fig_mensal = px.line(mensal, x="mes", y="qtd", title="Vendas Mensais")
+    fig_mensal = px.line(mensal, x="mes", y="qtd",
+                         markers=True, line_shape="linear",
+                         title="Vendas Mensais")
     st.plotly_chart(fig_mensal, use_container_width=True)
 
     # Vendas por dia da semana
@@ -114,7 +123,9 @@ else:
     df = prepare_for_streamlit(df)
     semana = df.groupby('dia_semana')['qtd'].sum().reset_index()
     semana = prepare_for_streamlit(semana)
-    fig_semana = px.bar(semana, x="dia_semana", y="qtd", title="Vendas por Dia da Semana")
+    fig_semana = px.bar(semana, x="dia_semana", y="qtd",
+                        color="dia_semana", color_discrete_sequence=px.colors.qualitative.Set2,
+                        title="Vendas por Dia da Semana")
     st.plotly_chart(fig_semana, use_container_width=True)
 
     # Top produtos
@@ -122,7 +133,9 @@ else:
     df_cat = prepare_for_streamlit(df_cat)
     top_produtos = df_cat.groupby('name')['qtd'].sum().sort_values(ascending=False).head(10).reset_index()
     top_produtos = prepare_for_streamlit(top_produtos)
-    fig_top = px.bar(top_produtos, x="name", y="qtd", title="Top 10 Produtos")
+    fig_top = px.bar(top_produtos, x="name", y="qtd",
+                     color="name", color_discrete_sequence=px.colors.qualitative.Pastel,
+                     title="Top 10 Produtos")
     st.plotly_chart(fig_top, use_container_width=True)
 
     # Pares de produtos
@@ -137,7 +150,4 @@ else:
     df_pares['Par de Produtos'] = df_pares['Par de Produtos'].apply(lambda x: f"{x[0]} + {x[1]}")
     df_pares = prepare_for_streamlit(df_pares)
     st.dataframe(df_pares)
-    fig_pares = px.bar(df_pares, x="Par de Produtos", y="Frequência",
-                       title="Top 10 Pares de Produtos Comprados Juntos",
-                       color="Frequência", color_continuous_scale="Blues")
-    st.plotly_chart(fig_pares, use_container_width=True)
+    fig_pares = px.bar(df_pares
