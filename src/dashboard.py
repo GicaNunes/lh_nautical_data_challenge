@@ -5,7 +5,7 @@ from collections import Counter
 import unidecode
 import re
 
-# --- Função para preparar DataFrames para Streamlit ---
+# --- Função para preparar DataFrames ---
 def prepare_for_streamlit(df):
     for col in df.select_dtypes(include=["string", "object"]).columns:
         df[col] = df[col].astype(str)
@@ -25,7 +25,7 @@ produtos = prepare_for_streamlit(produtos)
 clientes = pd.read_json("data/json/clientes_crm.json")
 clientes = prepare_for_streamlit(clientes)
 
-# --- Função de limpeza de categorias ---
+# --- Limpeza de categorias ---
 def limpar_categoria(cat):
     if pd.isna(cat):
         return None
@@ -34,16 +34,9 @@ def limpar_categoria(cat):
     return cat
 
 produtos["actual_category"] = produtos["actual_category"].apply(limpar_categoria)
-
-mapa_categorias = {
-    "ancoragem": "ancoragem", "ancorajem": "ancoragem", "encoragi": "ancoragem", "ancoragen": "ancoragem",
-    "a n c o r a g e m": "ancoragem","ancoraguem": "ancoragem", "ancorajm": "ancoragem",
-    "ancorajen": "ancoragem", "encoragem": "ancoragem", "ancora": "ancoragem",
-    "eletronicos": "eletronicos", "e l e t r o n  i c o s": "eletronicos", "eletronico": "eletronicos",
-    "eletronicoz": "eletronicos","eletroniscos": "eletronicos", "eletrunicos": "eletronicos", "eletroiscos": "eletronicos",
-    "propulsao": "propulsao", "propulcao": "propulsao", "p r o p u l s a o": "propulsao", "propucao": "propulsao",
-    "propulsor": "propulsao","propulsam": "propulsao", "propulssao": "propulsao", "prop": "propulsao"
-}
+mapa_categorias = {"ancoragem":"ancoragem","ancorajem":"ancoragem","ancora":"ancoragem",
+                   "eletronicos":"eletronicos","eletronico":"eletronicos",
+                   "propulsao":"propulsao","propulcao":"propulsao","propulsor":"propulsao"}
 produtos["actual_category"] = produtos["actual_category"].replace(mapa_categorias)
 produtos["actual_category"] = produtos["actual_category"].fillna("Outros")
 
@@ -150,4 +143,7 @@ else:
     df_pares['Par de Produtos'] = df_pares['Par de Produtos'].apply(lambda x: f"{x[0]} + {x[1]}")
     df_pares = prepare_for_streamlit(df_pares)
     st.dataframe(df_pares)
-    fig_pares = px.bar(df_pares
+    fig_pares = px.bar(df_pares, x="Par de Produtos", y="Frequência",
+                       color="Par de Produtos", color_discrete_sequence=px.colors.qualitative.Set2,
+                       title="Top 10 Pares de Produtos Comprados Juntos")
+    st.plotly_chart(fig_pares, use_container_width=True)
