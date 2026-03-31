@@ -14,8 +14,20 @@ O desafio consistiu em:
 ---
 
 ## 🚀 Dashboard Online
-O resultado final está disponível aqui:  
+O resultado final versão 1 e 2 está disponível aqui:  
 👉 [Acesse o Dashboard Interativo](https://lh-nautical-data-challenge.onrender.com)
+👉 [Acesse o Dashboard Interativo](https://lh-nautical-data-challenge-1.onrender.com)
+
+---
+
+Nota sobre disponibilidade no Render Free Tier
+Este projeto está hospedado no Render Free Tier, que possui um limite mensal de horas de uso.
+
+⚠️ Importante: ao ultrapassar o limite, o serviço pode ficar fora do ar no final do mês.
+
+✅ No dia 1 de cada mês, o ciclo gratuito é reiniciado e o serviço volta a funcionar normalmente.
+
+Se você precisa de disponibilidade contínua sem interrupções, considere migrar para um plano pago ou ajustar a configuração para reduzir o consumo de horas (por exemplo, ativando auto-suspend ou limitando os horários de execução).
 
 ---
 
