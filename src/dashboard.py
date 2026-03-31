@@ -5,25 +5,15 @@ from collections import Counter
 import unidecode
 import re
 
-# --- Função para preparar DataFrames ---
-def prepare_for_streamlit(df):
-    for col in df.select_dtypes(include=["string", "object"]).columns:
-        df[col] = df[col].astype(str)
-    return df
-
 # --- Carregar dados ---
 df = pd.read_csv("data/csv/vendas_2023_2024.csv")
 df['sale_date'] = pd.to_datetime(df['sale_date'], errors='coerce')
 df = df.dropna(subset=['sale_date'])
 df["id_client"] = df["id_client"].astype(str)
 df["total"] = pd.to_numeric(df["total"], errors="coerce")
-df = prepare_for_streamlit(df)
 
 produtos = pd.read_csv("data/csv/produtos_raw.csv")
-produtos = prepare_for_streamlit(produtos)
-
 clientes = pd.read_json("data/json/clientes_crm.json")
-clientes = prepare_for_streamlit(clientes)
 
 # --- Limpeza de categorias ---
 def limpar_categoria(cat):
@@ -34,9 +24,12 @@ def limpar_categoria(cat):
     return cat
 
 produtos["actual_category"] = produtos["actual_category"].apply(limpar_categoria)
-mapa_categorias = {"ancoragem":"ancoragem","ancorajem":"ancoragem","ancora":"ancoragem",
-                   "eletronicos":"eletronicos","eletronico":"eletronicos",
-                   "propulsao":"propulsao","propulcao":"propulsao","propulsor":"propulsao"}
+
+mapa_categorias = {
+    "ancoragem":"ancoragem","ancorajem":"ancoragem","ancora":"ancoragem",
+    "eletronicos":"eletronicos","eletronico":"eletronicos",
+    "propulsao":"propulsao","propulcao":"propulsao","propulsor":"propulsao"
+}
 produtos["actual_category"] = produtos["actual_category"].replace(mapa_categorias)
 produtos["actual_category"] = produtos["actual_category"].fillna("Outros")
 
@@ -48,7 +41,6 @@ st.sidebar.subheader("Filtros")
 data_ini = st.sidebar.date_input("Data inicial", df['sale_date'].min())
 data_fim = st.sidebar.date_input("Data final", df['sale_date'].max())
 df = df[(df['sale_date'] >= pd.to_datetime(data_ini)) & (df['sale_date'] <= pd.to_datetime(data_fim))]
-df = prepare_for_streamlit(df)
 
 # --- Dashboard Executivo ---
 if page == "Executivo":
@@ -65,13 +57,11 @@ if page == "Executivo":
         "Valor máximo": df['total'].max(),
         "Valor médio": round(df['total'].mean(), 2)
     }
-    stats_df = prepare_for_streamlit(pd.DataFrame(stats.items(), columns=["Métrica", "Valor"]))
-    st.table(stats_df)
+    st.table(pd.DataFrame(stats.items(), columns=["Métrica", "Valor"]))
 
     # Questão 3 - Lucro acumulado por cliente
     st.subheader("Questão 3 - Lucro por Cliente")
     lucro_clientes = df.groupby('id_client')['total'].sum().sort_values(ascending=False).head(10).reset_index()
-    lucro_clientes = prepare_for_streamlit(lucro_clientes)
     fig_clientes = px.bar(lucro_clientes, x="id_client", y="total",
                           color="id_client", color_discrete_sequence=px.colors.qualitative.Set2,
                           title="Top 10 Clientes por Lucro")
@@ -81,9 +71,7 @@ if page == "Executivo":
     # Questão 8 - Distribuição de categorias
     st.subheader("Questão 8 - Distribuição de Categorias")
     df_cat = df.merge(produtos, left_on='id_product', right_on='code', how='left')
-    df_cat = prepare_for_streamlit(df_cat)
     ranking = df_cat.groupby('actual_category')['qtd'].sum().sort_values(ascending=False).reset_index()
-    ranking = prepare_for_streamlit(ranking)
 
     fig_cat = px.bar(ranking, x="actual_category", y="qtd",
                      color="actual_category", color_discrete_sequence=px.colors.qualitative.Dark2,
@@ -103,19 +91,14 @@ else:
 
     # Vendas mensais
     df['mes'] = df['sale_date'].dt.to_period('M').astype(str)
-    df = prepare_for_streamlit(df)
     mensal = df.groupby('mes')['qtd'].sum().reset_index()
-    mensal = prepare_for_streamlit(mensal)
-    fig_mensal = px.line(mensal, x="mes", y="qtd",
-                         markers=True, line_shape="linear",
+    fig_mensal = px.line(mensal, x="mes", y="qtd", markers=True,
                          title="Vendas Mensais")
     st.plotly_chart(fig_mensal, use_container_width=True)
 
     # Vendas por dia da semana
     df['dia_semana'] = df['sale_date'].dt.day_name().astype(str)
-    df = prepare_for_streamlit(df)
     semana = df.groupby('dia_semana')['qtd'].sum().reset_index()
-    semana = prepare_for_streamlit(semana)
     fig_semana = px.bar(semana, x="dia_semana", y="qtd",
                         color="dia_semana", color_discrete_sequence=px.colors.qualitative.Set2,
                         title="Vendas por Dia da Semana")
@@ -123,9 +106,8 @@ else:
 
     # Top produtos
     df_cat = df.merge(produtos, left_on='id_product', right_on='code', how='left')
-    df_cat = prepare_for_streamlit(df_cat)
     top_produtos = df_cat.groupby('name')['qtd'].sum().sort_values(ascending=False).head(10).reset_index()
-    top_produtos = prepare_for_streamlit(top_produtos)
+    top_produtos['name'] = top_produtos['name'].astype(str)
     fig_top = px.bar(top_produtos, x="name", y="qtd",
                      color="name", color_discrete_sequence=px.colors.qualitative.Pastel,
                      title="Top 10 Produtos")
@@ -141,9 +123,8 @@ else:
     pares_top = pares.most_common(10)
     df_pares = pd.DataFrame(pares_top, columns=["Par de Produtos", "Frequência"])
     df_pares['Par de Produtos'] = df_pares['Par de Produtos'].apply(lambda x: f"{x[0]} + {x[1]}")
-    df_pares = prepare_for_streamlit(df_pares)
-    st.dataframe(df_pares)
     fig_pares = px.bar(df_pares, x="Par de Produtos", y="Frequência",
                        color="Par de Produtos", color_discrete_sequence=px.colors.qualitative.Set2,
                        title="Top 10 Pares de Produtos Comprados Juntos")
     st.plotly_chart(fig_pares, use_container_width=True)
+    st.dataframe(df_pares)
